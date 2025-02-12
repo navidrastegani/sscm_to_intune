@@ -266,9 +266,3 @@ Start-Process -FilePath "$env:ProgramFiles\Microsoft Intune Management Extension
 2. Check device compliance
 3. Review assignment filters
 4. Verify scope tags
-
-### Contact Information
-- Project Lead: [Name]
-- Technical Lead: [Name]
-- Service Desk: [Contact Details]
-- Emergency Contact: [Details]
