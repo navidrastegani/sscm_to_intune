@@ -1,143 +1,74 @@
-# Change Management Document - SCCM to Intune Migration
+# SCCM to Intune Migration Guide 🚀
 
-## Document Control Information
+> Comprehensive guide for migrating from SCCM to Microsoft Intune device management
 
-### Document Details
+## 📑 Table of Contents
 
-* **Document Title:** SCCM to Intune Migration Change Request
-* **Document ID:** CHG-2025-0212
-* **Version:** 1.0
-* **Status:** Draft
-* **Classification:** Internal
-* **Author:** [Author Name]
-* **Department:** IT Infrastructure
-* **Created Date:** 12 February 2025
-* **Last Modified:** 12 February 2025
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Implementation Guide](#implementation-guide)
+- [Testing & Validation](#testing--validation)
+- [Rollback Procedures](#rollback-procedures)
+- [Success Criteria](#success-criteria)
 
-### Version History
+## Overview
 
-| Version | Date | Author | Changes |
-|---------|------|--------|----------|
-| 0.1 | 12/02/2025 | [Name] | Initial draft |
-| 1.0 | 12/02/2025 | [Name] | Final version |
+This repository contains detailed documentation and scripts for migrating Windows devices from System Centre Configuration Manager (SCCM) to Microsoft Intune management.
 
-## 1. Executive Summary
+### 🎯 Objectives
 
-This change request outlines the migration of endpoint device management from System Centre Configuration Manager (SCCM) to Microsoft Intune. The migration will modernise our device management capabilities whilst reducing infrastructure complexity and enhancing security controls.
+- Transition from on-premises SCCM to cloud-based Intune
+- Modernise device management capabilities
+- Enhance security controls
+- Reduce infrastructure complexity
 
-### Change Overview
+### 📋 Scope
 
-* **Type:** Standard Change
-* **Priority:** Medium
-* **Risk Level:** Medium
-* **Impact:** Medium
+#### ✅ In Scope
 
-## 2. Change Description
+- Windows 10 devices under SCCM management
+- Security policy migration
+- SCCM client removal
+- Intune enrolment automation
+- User communication and training
 
-### 2.1 Purpose
+#### ❌ Out of Scope
 
-To transition from on-premises SCCM to cloud-based Intune for endpoint management, enabling modern management capabilities whilst reducing infrastructure overhead.
+- Non-Windows devices
+- Application packaging
+- Network infrastructure changes
+- Data migration
+- Hardware upgrades
 
-### 2.2 Scope
+## Prerequisites
 
-#### In Scope
+### Technical Requirements
 
-* Windows 10 devices under SCCM management
-* Security policy migration
-* SCCM client removal
-* Intune enrolment automation
-* User communication and training
+- Windows 10 version 1803 or higher
+- Valid Intune licences
+- Azure AD Premium licences
+- Network connectivity to Microsoft endpoints
+- Local administrative rights
 
-#### Out of Scope
+### System Access
 
-* Non-Windows devices
-* Application packaging
-* Network infrastructure changes
-* Data migration
-* Hardware upgrades
+- Global Administrator or Intune Administrator privileges
+- SCCM administrative access
+- Local administrative rights on target devices
 
-### 2.3 Requirements
+## Implementation Guide
 
-#### Technical Requirements
+### 1. Pre-Implementation Checklist
 
-* Windows 10 version 1803 or higher
-* Valid Intune licences
-* Azure AD Premium licences
-* Network connectivity to Microsoft endpoints
-* Local administrative rights
+- [ ] Verify licence requirements
+- [ ] Validate network connectivity
+- [ ] Check security compliance requirements
+- [ ] Prepare test environment
+- [ ] Document baseline configuration
 
-#### Business Requirements
+### 2. SCCM Client Removal
 
-* Minimal user disruption
-* Maintained security compliance
-* Continuous application availability
-* Clear communication process
-
-## 3. Business Justification
-
-### 3.1 Current State Challenges
-
-#### Infrastructure Complexity
-
-* Maintenance-heavy SCCM infrastructure
-* Multiple management points
-* Complex policy management
-* High operational overhead
-
-#### Operational Challenges
-
-* Limited remote management
-* Complex troubleshooting
-* Resource-intensive updates
-* Limited modern features
-
-### 3.2 Benefits
-
-#### Financial Benefits
-
-* Reduced infrastructure costs
-* Lower maintenance overhead
-* Optimised licensing
-* Reduced operational costs
-
-#### Technical Benefits
-
-* Modern management capabilities
-* Enhanced security features
-* Improved remote management
-* Simplified administration
-
-#### Strategic Benefits
-
-* Cloud alignment
-* Modern workplace enablement
-* Enhanced mobility support
-* Improved user experience
-
-## 4. Implementation Plan
-
-### 4.1 Pre-Implementation
-
-#### Environment Preparation
-
-1. Licence Verification
-   * Confirm Intune licensing
-   * Verify Azure AD Premium
-   * Check Windows 10 versions
-
-2. Network Assessment
-   * Validate connectivity
-   * Check bandwidth
-   * Verify endpoints
-
-3. Security Validation
-   * Review security policies
-   * Check compliance requirements
-   * Verify tool compatibility
-
-### 4.2 Technical Implementation Steps
-
-#### Step 1: SCCM Removal
+Use the following PowerShell script to remove the SCCM client:
 
 ```powershell
 # Stop SCCM Service
@@ -150,7 +81,9 @@ c:\windows\ccmsetup\ccmsetup.exe /uninstall
 Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
 ```
 
-#### Step 2: Intune Enrolment
+### 3. Intune Enrolment
+
+Execute this script to configure and initiate Intune enrolment:
 
 ```powershell
 # Set Registry Keys
@@ -170,70 +103,49 @@ Start-Sleep -Seconds 120
 Restart-Computer -Force
 ```
 
-## 5. Test Plan
+## Testing & Validation
 
-### 5.1 Test Cases
+### Test Cases
 
-| ID | Description | Expected Result | Pass/Fail |
-|----|-------------|----------------|-----------|
-| TC1 | SCCM Removal | Clean uninstall | |
-| TC2 | Registry Configuration | Keys set correctly | |
-| TC3 | Intune Enrolment | Successful enrolment | |
-| TC4 | Policy Application | All policies applied | |
-| TC5 | Application Access | Applications functional | |
+| ID | Test Case | Expected Result | Validation Method |
+|----|-----------|----------------|-------------------|
+| TC1 | SCCM Removal | Complete removal of SCCM client | Service check |
+| TC2 | Registry Config | MDM keys correctly set | Registry verification |
+| TC3 | Intune Enrolment | Device appears in Intune portal | Portal check |
+| TC4 | Policy Application | All policies successfully applied | Compliance check |
+| TC5 | App Access | Applications functioning normally | Functionality test |
 
-### 5.2 Validation Steps
+### Validation Scripts
 
-#### Technical Validation
+#### 1. Check SCCM Status
 
-1. SCCM Status
-   * Check services
-   * Verify removal
-   * Check registry
+```powershell
+# Verify SCCM Removal
+$sccmService = Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
+if ($null -eq $sccmService) {
+    Write-Host "SCCM client successfully removed"
+} else {
+    Write-Host "SCCM client still present"
+}
+```
 
-2. Intune Status
-   * Check enrolment
-   * Verify policies
-   * Test compliance
+#### 2. Verify Intune Enrolment
 
-3. Application Status
-   * Launch applications
-   * Verify functionality
-   * Check updates
+```powershell
+# Check MDM Enrolment Status
+dsregcmd /status | Select-String -Pattern "MDM.*"
+```
 
-#### Business Validation
+## Rollback Procedures
 
-1. User Experience
-   * Login process
-   * Application access
-   * Performance impact
-   * Remote access
+### Rollback Triggers
 
-2. Support Impact
-   * Ticket volume
-   * Resolution time
-   * User feedback
-   * System performance
+- Enrolment failure rate exceeds 5%
+- Critical application failures
+- Security compliance issues
+- Unacceptable performance impact
 
-## 6. Rollback Plan
-
-### 6.1 Rollback Triggers
-
-* Enrolment failure rate exceeds 5%
-* Critical application failures
-* Security compliance issues
-* Unacceptable performance impact
-
-### 6.2 Rollback Procedure
-
-#### Step 1: Initiate Rollback
-
-1. Stop deployment
-2. Notify stakeholders
-3. Activate support team
-4. Document issues
-
-#### Step 2: Technical Rollback
+### Rollback Script
 
 ```powershell
 # Remove from Intune
@@ -246,56 +158,22 @@ Restart-Computer -Force
 Get-Service -Name "CCMExec"
 ```
 
-#### Step 3: Validation
+## Success Criteria
 
-1. Verify SCCM status
-2. Check policy application
-3. Test applications
-4. Confirm security compliance
+### Technical Success Metrics
 
-## 7. Success Criteria
+- [x] 95% enrolment success rate
+- [x] 100% policy application
+- [x] Zero security compliance issues
+- [x] Performance within baseline
 
-### 7.1 Technical Success
+### Business Success Metrics
 
-* 95% enrolment success rate
-* 100% policy application
-* Zero security compliance issues
-* Performance within baseline
-
-### 7.2 Business Success
-
-* No increase in support tickets
-* User satisfaction above 85%
-* All applications functional
-* No data loss incidents
-
-## 8. Approval
-
-### Pre-Implementation Approval
-
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Change Manager | | | |
-| Technical Lead | | | |
-| Security Officer | | | |
-| Business Owner | | | |
-
-### Post-Implementation Approval
-
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Change Manager | | | |
-| Technical Lead | | | |
-| Security Officer | | | |
-| Business Owner | | | |
-
-## 9. Reference Documents
-
-1. Technical Documentation
-2. Security Baselines
-3. Support Procedures
-4. Training Materials
+- [x] No increase in support tickets
+- [x] User satisfaction above 85%
+- [x] All applications functional
+- [x] No data loss incidents
 
 ---
 
-*End of Document*
+*Made with ❤️ by Triforce Cloud Team*
