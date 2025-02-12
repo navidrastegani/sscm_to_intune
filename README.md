@@ -1,182 +1,274 @@
-# sscm_to_intune
-# Change Management Document: Transition from SCCM to Intune-Only Mode Using SCCM-NAA as DEM Account
+# SCCM to Intune Migration - Implementation Plan
 
----
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Prerequisites](#prerequisites)
+- [Implementation Phases](#implementation-phases)
+- [Testing Procedures](#testing-procedures)
+- [Rollback Plan](#rollback-plan)
+- [Success Criteria](#success-criteria)
 
-## 1. Change Request Overview
+## Project Overview
 
-### 1.1 Change Title
-Transition Windows 10 Devices from SCCM to Intune-Only Mode Using SCCM-NAA as DEM Account
+### Objective
+Automated migration of devices from SCCM to Intune using GPO and DEM account deployment.
 
-### 1.2 Change Description
-This change involves transitioning all Windows 10 devices currently managed by SCCM (System Center Configuration Manager) to Microsoft Intune-only mode. The process includes:
-- Uninstalling the SCCM agent.
-- Enrolling devices into Intune via Azure AD Join using the **SCCM-NAA** account as a Device Enrollment Manager (DEM).
-- Automating the transition using Group Policy and PowerShell scripts.
+### Scope
+- Target Environment: [Specify OUs]
+- Number of Devices: [Specify Count]
+- Timeline: [Specify Duration]
 
-### 1.3 Justification
-The transition to Intune-only mode is driven by the following business needs:
-- **Modern Device Management**: Intune provides advanced cloud-based management capabilities, including app deployment, policy enforcement, and conditional access.
-- **Cost Optimization**: Moving away from SCCM reduces infrastructure and operational costs associated with on-premises management.
-- **Scalability and Flexibility**: Intune is designed to scale seamlessly, making it ideal for organizations with remote or hybrid workforces.
-- **Enhanced Security**: Intune integrates with Azure AD, enabling robust security features like Conditional Access, compliance policies, and threat protection.
-- **Simplified Operations**: Centralized management through Intune eliminates the complexity of maintaining a hybrid SCCM/Intune environment.
+### Success Metrics
+- 100% devices enrolled in Intune
+- SCCM agent successfully removed
+- All policies applied correctly
+- No user disruption
 
-### 1.4 Scope
-The scope of this change includes:
-- Uninstalling the SCCM agent from all Windows 10 devices.
-- Enrolling devices into Intune using the SCCM-NAA DEM account.
-- Automating the process through Group Policy and PowerShell scripts.
+## Prerequisites
 
----
+### Access Requirements
+- Global Admin access to Microsoft 365
+- Domain Admin rights
+- SCCM Admin access
+- Intune Admin access
 
-## 2. Risk Assessment
+### Technical Requirements
+- Azure AD Connect configured
+- Network connectivity to Intune endpoints
+- GPO replication working
+- SentinelOne exceptions (if required)
 
-### 2.1 Potential Risks
-1. **Device Downtime**: Temporary unavailability of devices during the uninstallation and enrollment process.
-2. **Data Loss**: Misconfiguration could result in loss of SCCM-managed configurations or settings.
-3. **Enrollment Failures**: Network issues, misconfigurations, or insufficient permissions may prevent devices from enrolling in Intune.
-4. **User Disruption**: End users may experience interruptions if applications or settings are not properly migrated.
-5. **Credential Exposure**: The SCCM-NAA DEM account credentials must be securely managed to prevent unauthorized access.
+## Implementation Phases
 
-### 2.2 Mitigation Strategies
-To address these risks, the following measures will be implemented:
-- **Pilot Testing**: Conduct a small-scale test on a subset of devices before full deployment.
-- **Backups**: Create backups of SCCM configurations and critical device data.
-- **Rollback Plan**: Develop a rollback strategy to reinstall the SCCM agent if necessary.
-- **Secure Credentials**: Store the SCCM-NAA account credentials in an encrypted format and restrict access to authorized personnel.
-- **Communication**: Notify users in advance and provide clear instructions and support channels.
+### Phase 1: Pre-Implementation Setup
 
----
-
-## 3. Implementation Plan
-
-### 3.1 Pre-Implementation Tasks
-Before initiating the transition, the following prerequisites must be completed:
-1. **Azure AD Configuration**:
-   - Ensure the Azure AD tenant is properly configured.
-   - Assign Intune licenses to all users or devices.
-2. **Permissions**:
-   - Verify that the Global Admin or Intune Admin role has been assigned to the responsible team.
-3. **DEM Account Setup**:
-   - Configure the **SCCM-NAA** account as a Device Enrollment Manager (DEM) in Azure AD.
-4. **Scripts Preparation**:
-   - Develop and test the `Uninstall-SCCMAgent.ps1` script for removing the SCCM agent.
-   - Develop and test the `Enroll-Intune.ps1` script for enrolling devices into Intune.
-5. **Group Policy Configuration**:
-   - Configure Group Policy Objects (GPOs) to deploy the scripts automatically.
-
-### 3.2 Implementation Steps
-#### Step 1: Uninstall SCCM Agent
-- Deploy the `Uninstall-SCCMAgent.ps1` script via Group Policy Startup Script.
-- Monitor logs to confirm successful uninstallation of the SCCM agent.
-
-#### Step 2: Enroll Devices in Intune
-- Deploy the `Enroll-Intune.ps1` script via Group Policy Startup Script.
-- Use the **SCCM-NAA** DEM account to perform Azure AD Join.
-- Monitor the Intune portal to verify device enrollment.
-
-#### Step 3: Validate Transition
-- Confirm that all devices appear in the Intune portal.
-- Check compliance with Intune policies to ensure proper configuration.
-
----
-
-## 4. Rollback Plan
-
-### 4.1 Rollback Trigger
-A rollback will be initiated under the following conditions:
-- More than 10% of devices fail to enroll in Intune.
-- Critical business applications or services are disrupted.
-
-### 4.2 Rollback Steps
-1. **Reinstall SCCM Agent**:
-   - Deploy the SCCM client installation script via Group Policy using the following command:
-     ```powershell
-     Start-Process -FilePath "\\SCCMServer\ccmsetup\ccmsetup.exe" -ArgumentList "/mp:SCCMServer FSP=SCCMServer" -Wait
-     ```
-2. **Disable Intune Enrollment**:
-   - Remove the `Enroll-Intune.ps1` script from Group Policy.
-3. **Verify SCCM Management**:
-   - Confirm that devices reappear in the SCCM console and are functioning as expected.
-
----
-
-## 5. Validation and Testing
-
-### 5.1 Pilot Testing
-- Select a small group of 5-10 devices for testing.
-- Perform the following checks:
-  - The SCCM agent is successfully uninstalled.
-  - Devices are enrolled in Intune using the SCCM-NAA DEM account.
-  - Devices comply with Intune policies.
-
-### 5.2 Full Deployment Validation
-- Monitor key metrics during the full deployment:
-  - Number of devices successfully enrolled in Intune.
-  - Compliance rate with Intune policies.
-  - User-reported issues or disruptions.
-
-### 5.3 Post-Deployment Testing
-- Verify that critical applications and services are functioning correctly.
-- Conduct user acceptance testing (UAT) to ensure a smooth transition for end users.
-
----
-
-## 6. Communication Plan
-
-### 6.1 Stakeholders
-The following stakeholders will be involved in the change:
-- IT Operations Team
-- End Users
-- Business Unit Leaders
-
-### 6.2 Communication Channels
-- Notify users via email about the upcoming change and its benefits.
-- Publish an internal knowledge base article with FAQs and troubleshooting steps.
-- Provide helpdesk support to address user concerns and issues.
-
----
-
-## 7. Scripts
-
-### 7.1 SCCM Agent Uninstallation Script
+#### 1.1 Environment Preparation
 ```powershell
-# Uninstall SCCM Agent Script
-$SCCMService = "ccmsetup"
-$SCCMProcess = "ccmsetup.exe"
+# Verify Azure AD Connect sync
+Start-ADSyncSyncCycle -PolicyType Delta
 
-# Stop SCCM Service if running
-if (Get-Service -Name $SCCMService -ErrorAction SilentlyContinue) {
-    Stop-Service -Name $SCCMService -Force
+# Test network connectivity
+Test-NetConnection -ComputerName enterpriseregistration.windows.net -Port 443
+Test-NetConnection -ComputerName login.microsoftonline.com -Port 443
+```
+
+#### 1.2 Documentation
+- Export current SCCM device list
+- Document existing policies
+- Create system state backup
+- Record current compliance state
+
+### Phase 2: DEM Account Configuration
+
+#### 2.1 Create Service Account
+```powershell
+# Create DEM account
+New-ADUser -Name "SVC_IntuneEnroll" `
+    -UserPrincipalName "SVC_IntuneEnroll@domain.com" `
+    -AccountPassword $securePassword `
+    -Enabled $true `
+    -PasswordNeverExpires $true `
+    -CannotChangePassword $true
+
+# Add to required groups
+Add-ADGroupMember -Identity "Domain Admins" -Members "SVC_IntuneEnroll"
+```
+
+#### 2.2 Intune Configuration
+1. Navigate to: https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/enrollment
+2. Add DEM account:
+   - Devices > Enroll devices > Device enrollment managers
+   - Add user > Enter DEM account
+   - Set device limit
+
+### Phase 3: GPO Creation
+
+#### 3.1 Create Base GPO
+```powershell
+# Create new GPO
+New-GPO -Name "Intune-Migration-Automation" -Comment "SCCM to Intune migration automation"
+
+# Link to target OU
+New-GPLink -Name "Intune-Migration-Automation" -Target "OU=Computers,DC=domain,DC=com"
+```
+
+#### 3.2 Configure Registry Settings
+Settings to be deployed:
+```registry
+Path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM
+Values:
+- AutoEnrollMDM = 1 (DWORD)
+- UseAADCredentialType = 1 (DWORD)
+```
+
+#### 3.3 Create Deployment Script
+Save as: `Intune-Enrollment.ps1`
+```powershell
+# Log file setup
+$LogPath = "C:\Windows\Temp\IntuneEnrollment.log"
+$ErrorActionPreference = "Stop"
+
+function Write-Log {
+    param($Message)
+    $LogMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'): $Message"
+    Add-Content -Path $LogPath -Value $LogMessage
+    Write-Output $LogMessage
 }
 
-# Uninstall SCCM Agent
-if (Test-Path "$env:WinDir\ccmsetup\ccmsetup.exe") {
-    Start-Process -FilePath "$env:WinDir\ccmsetup\ccmsetup.exe" -ArgumentList "/uninstall" -Wait
+try {
+    # Step 1: Uninstall SCCM Agent
+    Write-Log "Starting SCCM uninstallation"
+    if (Test-Path "c:\windows\ccmsetup\ccmsetup.exe") {
+        Start-Process -FilePath "c:\windows\ccmsetup\ccmsetup.exe" -ArgumentList "/uninstall" -Wait
+        Write-Log "SCCM uninstallation completed"
+    }
+
+    # Step 2: Leave AAD
+    Write-Log "Leaving AAD"
+    Start-Process -FilePath "dsregcmd.exe" -ArgumentList "/leave /debug" -Wait
+    Start-Sleep -Seconds 30
+
+    # Step 3: Configure Registry
+    Write-Log "Setting MDM registry keys"
+    $mdmPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM"
+    if (!(Test-Path $mdmPath)) {
+        New-Item -Path $mdmPath -Force
+    }
+    Set-ItemProperty -Path $mdmPath -Name "AutoEnrollMDM" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $mdmPath -Name "UseAADCredentialType" -Value 1 -Type DWord -Force
+
+    # Step 4: Trigger Enrollment
+    Write-Log "Starting auto-enrollment"
+    Start-Process -FilePath "C:\Windows\system32\deviceenroller.exe" -ArgumentList "/c /AutoEnrollMDM" -Wait
+
+    # Step 5: Schedule Reboot
+    Write-Log "Scheduling reboot"
+    Start-Process shutdown -ArgumentList "/r /t 120 /c `"System will restart for Intune enrollment`""
+
+} catch {
+    Write-Log "Error occurred: $_"
+    exit 1
 }
+```
 
-# Remove SCCM directories
-Remove-Item -Path "$env:WinDir\ccmsetup" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "$env:WinDir\CCM" -Recurse -Force -ErrorAction SilentlyContinue
+### Phase 4: Testing
 
-Write-Host "SCCM Agent has been uninstalled successfully."
+#### 4.1 Pilot Deployment
+1. Select test group (5-10 devices)
+2. Create test OU
+3. Move test devices
+4. Apply GPO
+5. Monitor for 24 hours
 
-7.2 Intune Enrollment Script
+#### 4.2 Validation Tests
+```powershell
+# Check enrollment status
+dsregcmd /status
 
-# Intune Enrollment Script
-param (
-    [Parameter(Mandatory=$true)]
-    [string]$AADUsername,
-    [Parameter(Mandatory=$true)]
-    [string]$AADPassword
-)
+# Verify MDM enrollment
+Get-Item -Path "HKLM:\SOFTWARE\Microsoft\Enrollments\*" | Get-ItemProperty
 
-# Convert password to secure string
-$SecurePassword = ConvertTo-SecureString -String $AADPassword -AsPlainText -Force
-$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AADUsername, $SecurePassword
+# Check logs
+Get-WinEvent -LogName "Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider/Admin"
+```
 
-# Perform Azure AD Join using SCCM-NAA DEM account
-Add-Computer -DomainName "yourdomain.onmicrosoft.com" -Credential $Credential -Restart -Force
+### Phase 5: Full Deployment
 
-Write-Host "Device is being enrolled into Intune via Azure AD Join using SCCM-NAA DEM account."
+#### 5.1 Deployment Waves
+1. Wave 1 (20% devices)
+   - Monitor for 4 hours
+   - Validate success
+2. Wave 2 (30% devices)
+   - Deploy after Wave 1 success
+   - Monitor for issues
+3. Wave 3 (Remaining devices)
+   - Complete deployment
+   - Full validation
+
+#### 5.2 Post-Deployment Checks
+- Verify device count in Intune
+- Check policy application
+- Test software deployment
+- Validate security compliance
+
+## Rollback Plan
+
+### Trigger Conditions
+- More than 10% enrollment failures
+- Critical system accessibility issues
+- Security policy failures
+
+### Rollback Steps
+
+#### 1. Stop Deployment
+```powershell
+# Disable GPO
+Disable-GPO -Name "Intune-Migration-Automation"
+```
+
+#### 2. Restore SCCM
+```powershell
+# Reinstall SCCM agent
+Start-Process -FilePath "\\<SCCM-Server>\Client\ccmsetup.exe" -Wait
+```
+
+#### 3. Remove Intune Enrollment
+```powershell
+# Leave AAD/Intune
+dsregcmd.exe /leave
+```
+
+## Success Criteria
+
+### Technical Validation
+- All devices visible in Intune portal
+- Policies applying correctly
+- Applications deploying successfully
+- Security compliance maintained
+
+### Business Validation
+- Users can access all required resources
+- No disruption to business operations
+- Help desk not overwhelmed with issues
+- Security standards maintained
+
+## Appendix
+
+### Useful Commands
+
+#### Enrollment Status
+```powershell
+# Check AAD join status
+dsregcmd /status
+
+# Get MDM enrollment status
+Get-MDMEnrollmentStatus
+
+# Check Intune sync
+Start-Process -FilePath "$env:ProgramFiles\Microsoft Intune Management Extension\AgentExecutor.exe" -ArgumentList "syncapp"
+```
+
+#### Log Locations
+- Intune Enrollment: %ProgramData%\Microsoft\IntuneManagementExtension\Logs
+- SCCM Uninstall: C:\Windows\ccmsetup\Logs
+- GPO: %SystemRoot%\Debug\UserMode\gpresult.html
+
+### Common Issues and Resolution
+
+#### Failed Enrollment
+1. Check network connectivity
+2. Verify service account permissions
+3. Review event logs
+4. Check SentinelOne blocking
+
+#### Policy Application Issues
+1. Force policy sync
+2. Check device compliance
+3. Review assignment filters
+4. Verify scope tags
+
+### Contact Information
+- Project Lead: [Name]
+- Technical Lead: [Name]
+- Service Desk: [Contact Details]
+- Emergency Contact: [Details]
