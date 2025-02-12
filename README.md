@@ -225,9 +225,4 @@ gpupdate /force
 - Security compliance maintained
 - Business applications functional
 
-## Support Contacts
 
-- Project Lead: [Name]
-- Technical Lead: [Name]
-- Service Desk: [Contact]
-- Emergency Contact: [Details]
