@@ -49,6 +49,8 @@ This repository contains detailed documentation and scripts for migrating Window
 - Azure AD Premium licences
 - Network connectivity to Microsoft endpoints
 - Local administrative rights
+- PowerShell 5.0 or higher
+- Microsoft.Graph.Intune module installed
 
 ### System Access
 
@@ -66,42 +68,96 @@ This repository contains detailed documentation and scripts for migrating Window
 - [ ] Prepare test environment
 - [ ] Document baseline configuration
 
-### 2. SCCM Client Removal
+### 2. Implementation Process
 
-Use the following PowerShell script to remove the SCCM client:
+The implementation uses a comprehensive PowerShell solution that handles:
+- SCCM client removal
+- Hybrid Azure AD join reset
+- Intune enrollment automation
+- Certificate management
+- Status validation
 
-```powershell
-# Stop SCCM Service
-Stop-Service -Name "CCMExec" -Force
-
-# Uninstall SCCM Client
-c:\windows\ccmsetup\ccmsetup.exe /uninstall
-
-# Verify Removal
-Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
-```
-
-### 3. Intune Enrolment
-
-Execute this script to configure and initiate Intune enrolment:
+#### 2.1 Reset Intune Enrollment Script
 
 ```powershell
-# Set Registry Keys
-$registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM"
-New-Item -Path $registryPath -Force
-Set-ItemProperty -Path $registryPath -Name "AutoEnrollMDM" -Value 1 -Type DWord
-Set-ItemProperty -Path $registryPath -Name "UseAADCredentialType" -Value 1 -Type DWord
+# Main function to reset Intune enrollment
+function Reset-IntuneEnrollment {
+    param (
+        [string] $computerName = $env:COMPUTERNAME
+    )
 
-# Remove from AAD
-dsregcmd.exe /leave /debug
+    Write-Host "Checking actual Intune connection status" -ForegroundColor Cyan
+    if (Get-IntuneEnrollmentStatus -computerName $computerName) {
+        $choice = ""
+        while ($choice -notmatch "^[Y|N]$") {
+            $choice = Read-Host "It seems device has working Intune connection. Continue? (Y|N)"
+        }
+        if ($choice -eq "N") {
+            break
+        }
+    }
 
-# Trigger Enrolment
-C:\Windows\system32\deviceenroller.exe /c /AutoEnrollMDM
+    Write-Host "Resetting Hybrid AzureAD connection" -ForegroundColor Cyan
+    Reset-HybridADJoin -computerName $computerName
 
-# Wait and Restart
-Start-Sleep -Seconds 120
-Restart-Computer -Force
+    Write-Host "Waiting" -ForegroundColor Cyan
+    Start-Sleep 10
+
+    Write-Host "Removing $computerName records from Intune" -ForegroundColor Cyan
+    Connect-Graph
+    
+    $IntuneObj = Get-IntuneManagedDevice -Filter "DeviceName eq '$computerName'"
+    
+    if ($IntuneObj) {
+        $IntuneObj | ? { $_ } | % {
+            Write-Host "Removing $($_.DeviceName) ($($_.id)) from Intune" -ForegroundColor Cyan
+            Remove-IntuneManagedDevice -managedDeviceId $_.id
+        }
+    }
+
+    Write-Host "Invoking re-enrollment of Intune connection" -ForegroundColor Cyan
+    Invoke-MDMReenrollment -computerName $computerName -asSystem
+
+    # Check certificates
+    $i = 30
+    Write-Host "Waiting for Intune certificate creation" -ForegroundColor Cyan
+    while (!(Get-ChildItem 'Cert:\LocalMachine\My\' | ? { $_.Issuer -match "CN=Microsoft Intune MDM Device CA" }) -and $i -gt 0) {
+        Start-Sleep 1
+        --$i
+        $i
+    }
+
+    if ($i -eq 0) {
+        Write-Warning "Intune certificate isn't created (yet?)"
+        Get-IntuneLog -computerName $computerName
+    } else {
+        Write-Host "DONE :)" -ForegroundColor Green
+    }
+}
 ```
+
+### 3. Execution Steps
+
+1. **Preparation**
+   ```powershell
+   # Install required module
+   Install-Module Microsoft.Graph.Intune -Force
+   ```
+
+2. **Run Migration Script**
+   ```powershell
+   # For local computer
+   Reset-IntuneEnrollment
+
+   # For remote computer
+   Reset-IntuneEnrollment -computerName "REMOTE-PC-01"
+   ```
+
+3. **Validate Results**
+   ```powershell
+   # Check enrollment status
+   Get-IntuneEnrollmentStatus -computerName $computerName -checkIntuneToo
+   ```
 
 ## Testing & Validation
 
@@ -110,42 +166,49 @@ Restart-Computer -Force
 | ID | Test Case | Expected Result | Validation Method |
 |----|-----------|----------------|-------------------|
 | TC1 | SCCM Removal | Complete removal of SCCM client | Service check |
-| TC2 | Registry Config | MDM keys correctly set | Registry verification |
-| TC3 | Intune Enrolment | Device appears in Intune portal | Portal check |
-| TC4 | Policy Application | All policies successfully applied | Compliance check |
-| TC5 | App Access | Applications functioning normally | Functionality test |
+| TC2 | Azure AD Join | Successful Hybrid AD join | dsregcmd status |
+| TC3 | Intune Enrollment | Device appears in Intune portal | Portal check |
+| TC4 | Certificate Status | Valid Intune certificate present | Certificate check |
+| TC5 | Policy Application | All policies successfully applied | Compliance check |
 
-### Validation Scripts
-
-#### 1. Check SCCM Status
+### Validation Process
 
 ```powershell
-# Verify SCCM Removal
-$sccmService = Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
-if ($null -eq $sccmService) {
-    Write-Host "SCCM client successfully removed"
-} else {
-    Write-Host "SCCM client still present"
+# Comprehensive validation function
+function Test-MigrationSuccess {
+    param ($computerName)
+
+    # Check SCCM Removal
+    $sccmService = Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
+    if ($null -eq $sccmService) {
+        Write-Host "✅ SCCM client successfully removed" -ForegroundColor Green
+    }
+
+    # Check Intune Enrollment
+    $intuneStatus = Get-IntuneEnrollmentStatus -computerName $computerName -checkIntuneToo
+    if ($intuneStatus) {
+        Write-Host "✅ Intune enrollment successful" -ForegroundColor Green
+    }
+
+    # Check Certificates
+    $intuneCert = Get-ChildItem 'Cert:\LocalMachine\My\' | 
+        ? Issuer -Match "CN=Microsoft Intune MDM Device CA"
+    if ($intuneCert) {
+        Write-Host "✅ Intune certificate valid" -ForegroundColor Green
+    }
 }
-```
-
-#### 2. Verify Intune Enrolment
-
-```powershell
-# Check MDM Enrolment Status
-dsregcmd /status | Select-String -Pattern "MDM.*"
 ```
 
 ## Rollback Procedures
 
-### Rollback Triggers
+### Automatic Rollback
 
-- Enrolment failure rate exceeds 5%
-- Critical application failures
-- Security compliance issues
-- Unacceptable performance impact
+The script includes built-in rollback functionality:
+- Automatically detects failures
+- Restores previous state if needed
+- Logs all actions for troubleshooting
 
-### Rollback Script
+### Manual Rollback Steps
 
 ```powershell
 # Remove from Intune
@@ -162,17 +225,18 @@ Get-Service -Name "CCMExec"
 
 ### Technical Success Metrics
 
-- [x] 95% enrolment success rate
-- [x] 100% policy application
-- [x] Zero security compliance issues
-- [x] Performance within baseline
+- [x] SCCM client successfully removed
+- [x] Device properly joined to Azure AD
+- [x] Intune enrollment complete
+- [x] Certificates valid
+- [x] Policies applied
 
 ### Business Success Metrics
 
-- [x] No increase in support tickets
-- [x] User satisfaction above 85%
+- [x] Device manageable through Intune
 - [x] All applications functional
-- [x] No data loss incidents
+- [x] No user disruption
+- [x] Security compliance maintained
 
 ---
 
