@@ -11,19 +11,19 @@
 * **Classification:** Internal
 * **Author:** [Author Name]
 * **Department:** IT Infrastructure
-* **Created Date:** February 12, 2025
-* **Last Modified:** February 12, 2025
+* **Created Date:** 12 February 2025
+* **Last Modified:** 12 February 2025
 
 ### Version History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|----------|
-| 0.1 | 2025-02-12 | [Name] | Initial draft |
-| 1.0 | 2025-02-12 | [Name] | Final version |
+| 0.1 | 12/02/2025 | [Name] | Initial draft |
+| 1.0 | 12/02/2025 | [Name] | Final version |
 
 ## 1. Executive Summary
 
-This change request outlines the migration of endpoint device management from System Center Configuration Manager (SCCM) to Microsoft Intune. The migration will modernize our device management capabilities while reducing infrastructure complexity and enhancing security controls.
+This change request outlines the migration of endpoint device management from System Centre Configuration Manager (SCCM) to Microsoft Intune. The migration will modernise our device management capabilities whilst reducing infrastructure complexity and enhancing security controls.
 
 ### Change Overview
 
@@ -36,7 +36,7 @@ This change request outlines the migration of endpoint device management from Sy
 
 ### 2.1 Purpose
 
-To transition from on-premises SCCM to cloud-based Intune for endpoint management, enabling modern management capabilities while reducing infrastructure overhead.
+To transition from on-premises SCCM to cloud-based Intune for endpoint management, enabling modern management capabilities whilst reducing infrastructure overhead.
 
 ### 2.2 Scope
 
@@ -45,7 +45,7 @@ To transition from on-premises SCCM to cloud-based Intune for endpoint managemen
 * Windows 10 devices under SCCM management
 * Security policy migration
 * SCCM client removal
-* Intune enrollment automation
+* Intune enrolment automation
 * User communication and training
 
 #### Out of Scope
@@ -61,8 +61,8 @@ To transition from on-premises SCCM to cloud-based Intune for endpoint managemen
 #### Technical Requirements
 
 * Windows 10 version 1803 or higher
-* Valid Intune licenses
-* Azure AD Premium licenses
+* Valid Intune licences
+* Azure AD Premium licences
 * Network connectivity to Microsoft endpoints
 * Local administrative rights
 
@@ -97,7 +97,7 @@ To transition from on-premises SCCM to cloud-based Intune for endpoint managemen
 
 * Reduced infrastructure costs
 * Lower maintenance overhead
-* Optimized licensing
+* Optimised licensing
 * Reduced operational costs
 
 #### Technical Benefits
@@ -120,7 +120,7 @@ To transition from on-premises SCCM to cloud-based Intune for endpoint managemen
 
 #### Environment Preparation
 
-1. License Verification
+1. Licence Verification
    * Confirm Intune licensing
    * Verify Azure AD Premium
    * Check Windows 10 versions
@@ -150,7 +150,7 @@ c:\windows\ccmsetup\ccmsetup.exe /uninstall
 Get-Service -Name "CCMExec" -ErrorAction SilentlyContinue
 ```
 
-#### Step 2: Intune Enrollment
+#### Step 2: Intune Enrolment
 
 ```powershell
 # Set Registry Keys
@@ -162,7 +162,7 @@ Set-ItemProperty -Path $registryPath -Name "UseAADCredentialType" -Value 1 -Type
 # Remove from AAD
 dsregcmd.exe /leave /debug
 
-# Trigger Enrollment
+# Trigger Enrolment
 C:\Windows\system32\deviceenroller.exe /c /AutoEnrollMDM
 
 # Wait and Restart
@@ -177,10 +177,10 @@ Restart-Computer -Force
 | ID | Description | Expected Result | Pass/Fail |
 |----|-------------|----------------|-----------|
 | TC1 | SCCM Removal | Clean uninstall | |
-| TC2 | Registry Config | Keys set correctly | |
-| TC3 | Intune Enrollment | Successful enrollment | |
+| TC2 | Registry Configuration | Keys set correctly | |
+| TC3 | Intune Enrolment | Successful enrolment | |
 | TC4 | Policy Application | All policies applied | |
-| TC5 | Application Access | Apps functional | |
+| TC5 | Application Access | Applications functional | |
 
 ### 5.2 Validation Steps
 
@@ -192,7 +192,7 @@ Restart-Computer -Force
    * Check registry
 
 2. Intune Status
-   * Check enrollment
+   * Check enrolment
    * Verify policies
    * Test compliance
 
@@ -219,7 +219,7 @@ Restart-Computer -Force
 
 ### 6.1 Rollback Triggers
 
-* Enrollment failure rate exceeds 5%
+* Enrolment failure rate exceeds 5%
 * Critical application failures
 * Security compliance issues
 * Unacceptable performance impact
@@ -257,7 +257,7 @@ Get-Service -Name "CCMExec"
 
 ### 7.1 Technical Success
 
-* 95% enrollment success rate
+* 95% enrolment success rate
 * 100% policy application
 * Zero security compliance issues
 * Performance within baseline
