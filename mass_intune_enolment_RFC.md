@@ -33,10 +33,10 @@
 
 ## 2. Step-by-Step Implementation Plan
 
-### 2.1. Phase 1: Preparation and Testing (Lab Environment - 1 week)
+### 2.1. Phase 1: Preparation and Testing (Lab Environment)
 
-*   **Step 1.1: Prerequisites Verification (Detailed)**
-    *   **Action:** Rigorously verify all prerequisites outlined in the comprehensive guide, especially Hybrid Azure AD Join configuration, Azure AD Connect synchronization, Intune licensing, and network connectivity.
+*   **Step 1.1: Prerequisites Verification**
+    *   **Action:** verify all prerequisites outlined in the comprehensive guide, especially Hybrid Azure AD Join configuration, Azure AD Connect synchronization, Intune licensing, and network connectivity.
     *   **Verification:** Follow detailed verification steps in the guide for each prerequisite. Document verification results.
     *   **Responsible:** \[Team/Individual responsible for prerequisite verification]
     *   **Timeline:** 1 day
@@ -45,7 +45,7 @@
     *   **Verification:** Ensure the lab environment accurately reflects the production setup for testing.
     *   **Responsible:** \[Team/Individual responsible for lab setup]
     *   **Timeline:** 1 day
-*   **Step 1.3: SCCM Agent Uninstallation Testing (Lab)**
+*   **Step 1.3: SCCM Agent Uninstallation Testing**
     *   **Action:** Test the SCCM agent uninstallation process using the Group Policy startup script in the lab environment.
     *   **Verification:** Confirm successful SCCM agent uninstallation on lab devices (Control Panel, Services, `CCMSetup.log`).
     *   **Responsible:** \[Team/Individual responsible for SCCM uninstallation testing]
@@ -61,7 +61,7 @@
     *   **Responsible:** \[Team/Individual responsible for rollback testing]
     *   **Timeline:** 1 day
 
-### 2.2. Phase 2: Pilot Rollout (Pilot Group of Devices - 1 week)
+### 2.2. Phase 2: Pilot Rollout (Pilot Group of Devices)
 
 *   **Step 2.1: Pilot Group Selection**
     *   **Action:** Identify a representative pilot group of devices and users for the initial rollout.
@@ -84,7 +84,7 @@
     *   **Responsible:** \[Team/Individual responsible for user feedback and plan refinement]
     *   **Timeline:** 2 days
 
-### 2.3. Phase 3: Mass Rollout (Staged Rollout to Remainder of Devices - 2-4 weeks, depending on device count)
+### 2.3. Phase 3: Mass Rollout (Staged Rollout to Remainder of Devices)
 
 *   **Step 3.1: Staged Rollout Planning**
     *   **Action:** Plan a staged rollout approach for the remaining devices, based on departments, locations, or device types. Define rollout waves and timelines for each stage.
@@ -101,7 +101,7 @@
     *   **Verification:** Track enrollment success rate for each wave. Maintain a log of any issues and resolutions.
     *   **Responsible:** \[Team/Individual responsible for monitoring and troubleshooting]
     *   **Timeline:** Ongoing during mass rollout (per wave)
-*   **Step 3.4: Post-Rollout Verification and Optimization**
+*   **Step 3.4: Post-Rollout Verification and Optimisation**
     *   **Action:** After each wave and the entire mass rollout, verify overall enrollment success, policy compliance, and device health in Intune. Optimize Intune policies and configurations based on monitoring data and feedback.
     *   **Verification:** Generate reports on enrollment status, compliance, and policy effectiveness. Address any remaining issues or gaps in management.
     *   **Responsible:** \[Team/Individual responsible for post-rollout verification and optimization]
