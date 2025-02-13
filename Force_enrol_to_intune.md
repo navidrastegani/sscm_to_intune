@@ -1,8 +1,8 @@
-# Mass Enrolling Hybrid Azure AD Joined Devices into Intune (After SCCM Agent Uninstallation) - Comprehensive Guide
+# Mass Enrolling Hybrid Azure AD Joined Devices into Intune (After SCCM Agent Uninstallation) - Guide
 
 ## Introduction
 
-This document provides a detailed, step-by-step guide to automatically mass enroll your hybrid Azure AD joined Windows devices into Microsoft Intune after successfully uninstalling the System Center Configuration Manager (SCCM) agent. This transition moves device management from SCCM to Intune, enabling modern, cloud-based management. This comprehensive guide is designed to be instructive and minimize potential issues during the migration process.
+This document provides a detailed, step-by-step guide to automatically mass enroll your hybrid Azure AD joined Windows devices into Microsoft Intune after successfully uninstalling the System Center Configuration Manager (SCCM) agent. This transition moves device management from SCCM to Intune, enabling modern, cloud-based management. This guide is designed to be instructive and minimize potential issues during the migration process.
 
 In addition to the automated enrollment script, this document now includes a PowerShell function, `Reset-IntuneEnrollment`, for advanced troubleshooting and manual re-enrollment of devices if needed. This function is not intended for automated mass deployment but is a valuable tool for administrators.
 
@@ -145,7 +145,7 @@ Once you have confirmed successful SCCM agent uninstallation and Hybrid Azure AD
 
 6.  **Apply Group Policy Update on Test Device:** On a test device within the target OU, open Command Prompt as administrator and run `gpupdate /force`. Press Enter and wait for the policy update to complete. Restart the test device.
 
-## Step 4: Verify Intune Enrollment - Comprehensive Verification Steps
+## Step 4: Verify Intune Enrollment - Verification Steps
 
 After configuring the GPO for Intune auto-enrollment, applying it, and restarting devices, it is essential to thoroughly verify that devices are successfully enrolling in Intune.
 
